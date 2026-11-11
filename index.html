@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>אליפות החשבון - כיתה ג'</title>
+  <style>
+    :root {
+      --primary-color: #4A90E2;
+      --secondary-color: #50E3C2;
+      --accent-color: #FF6B6B;
+      --bg-color: #F4F7F6;
+      --card-bg: #FFFFFF;
+      --text-color: #2C3E50;
+    }
+
+    * {
+      box-sizing: border-box;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #a8edd9 0%, #fed6e3 100%);
+      margin: 0;
+      padding: 15px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: var(--text-color);
+    }
+
+    .game-container {
+      background: var(--card-bg);
+      border-radius: 24px;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+      width: 100%;
+      max-width: 500px;
+      padding: 20px;
+      text-align: center;
+      position: relative;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      background: #F0F4F8;
+      padding: 10px 15px;
+      border-radius: 16px;
+      font-weight: bold;
+    }
+
+    .score-badge { color: #E67E22; font-size: 1.2rem; }
+    .level-badge { color: #2980B9; font-size: 1.1rem; }
+    .streak-badge { color: #27AE60; font-size: 1rem; }
+
+    .question-card {
+      background: #F8FAFC;
+      border: 3px solid #E2E8F0;
+      border-radius: 18px;
+      padding: 20px 15px;
+      margin-bottom: 20px;
+      min-height: 110px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .question-title {
+      font-size: 1.1rem;
+      color: #718096;
+      margin-bottom: 8px;
+    }
+
+    .question-text {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #1A202C;
+    }
+
+    /* Built-in Custom Keyboards & Options */
+    .answer-display {
+      min-height: 48px;
+      background: #EDF2F7;
+      border-bottom: 3px solid #CBD5E0;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      font-weight: bold;
+      margin-bottom: 15px;
+      padding: 5px 10px;
+      color: #2D3748;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .word-chip {
+      background: #3182CE;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 1.1rem;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      cursor: pointer;
+    }
+
+    .words-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 15px;
+    }
+
+    .btn-word {
+      background: #FFFFFF;
+      border: 2px solid #CBD5E0;
+      border-radius: 12px;
+      padding: 10px 16px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #4A5568;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      cursor: pointer;
+      transition: all 0.1s ease;
+    }
+
+    .btn-word:active {
+      transform: scale(0.95);
+      background: #E2E8F0;
+    }
+
+    /* Numeric Keypad */
+    .numpad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .btn-num {
+      background: #EDF2F7;
+      border: 2px solid #CBD5E0;
+      border-radius: 12px;
+      font-size: 1.5rem;
+      font-weight: bold;
+      padding: 12px 0;
+      color: #2D3748;
+      cursor: pointer;
+    }
+
+    .btn-num:active {
+      background: #CBD5E0;
+    }
+
+    .btn-action {
+      background: #FF6B6B;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      padding: 12px;
+      cursor: pointer;
+    }
+
+    .btn-submit {
+      background: #48BB78;
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 1.3rem;
+      font-weight: bold;
+      width: 100%;
+      padding: 14px;
+      box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+      cursor: pointer;
+    }
+
+    .btn-submit:active { transform: scale(0.98); }
+
+    .feedback {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      border-radius: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: rgba(255,255,255,0.95);
+      z-index: 10;
+      display: none;
+    }
+
+    .feedback-icon { font-size: 5rem; margin-bottom: 10px; }
+    .feedback-text { font-size: 1.8rem; font-weight: bold; }
+
+    /* Multiple choice options */
+    .options-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .btn-option {
+      background: #FFFFFF;
+      border: 2px solid #CBD5E0;
+      border-radius: 14px;
+      padding: 14px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #2D3748;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .btn-option:active { background: #E2E8F0; }
+  </style>
+</head>
+<body>
+
+<div class="game-container">
+  <div class="header">
+    <span class="score-badge">⭐ ניקוד: <span id="score">0</span></span>
+    <span class="level-badge">שלב <span id="level">1</span></span>
+    <span class="streak-badge">🔥 ברצף: <span id="streak">0</span></span>
+  </div>
+
+  <div class="question-card">
+    <div class="question-title" id="q-title">טוען שאלה...</div>
+    <div class="question-text" id="q-text">---</div>
+  </div>
+
+  <!-- Dynamic Controls Area -->
+  <div id="controls-area"></div>
+
+  <button class="btn-submit" id="submit-btn" onclick="checkAnswer()">בדיקה 👍</button>
+
+  <div class="feedback" id="feedback">
+    <div class="feedback-icon" id="fb-icon">🎉</div>
+    <div class="feedback-text" id="fb-text">כל הכבוד!</div>
+  </div>
+</div>
+
+<script>
+  let currentScore = 0;
+  let currentLevel = 1;
+  let streak = 0;
+  let currentQuestion = null;
+  let userWordInput = [];
+  let userNumInput = "";
+
+  const unitsWords = ["", "אחת", "שתים", "שלוש", "ארבע", "חמש", "שש", "שבע", "שמונה", "תשע"];
+  const tensWords = ["", "עשר", "עשרים", "שלושים", "ארבעים", "חמישים", "שישים", "שבעים", "שמונים", "תשעים"];
+  const hundredsWords = ["", "מאה", "מאתיים", "שלוש מאות", "ארבע מאות", "חמש מאות", "שש מאות", "שבע מאות", "שמונה מאות", "תשע מאות"];
+
+  function numberToWords(num) {
+    if (num === 0) return "אפס";
+    let h = Math.floor(num / 100);
+    let rem = num % 100;
+    let t = Math.floor(rem / 10);
+    let u = rem % 10;
+
+    let parts = [];
+    if (h > 0) parts.push(hundredsWords[h]);
+    
+    if (t === 1 && u > 0) {
+      const teens = ["עשר", "אחד עשר", "שתים עשרה", "שלוש עשרה", "ארבע עשרה", "חמש עשרה", "שש עשרה", "שבע עשרה", "שמונה עשרה", "תשע עשרה"];
+      parts.push(teens[u]);
+    } else {
+      if (t > 0) parts.push(tensWords[t]);
+      if (u > 0) {
+        let uWord = unitsWords[u];
+        if (parts.length > 0) uWord = "ו" + uWord;
+        parts.push(uWord);
+      }
+    }
+    return parts.join(" ");
+  }
+
+  function generateQuestion() {
+    userWordInput = [];
+    userNumInput = "";
+    
+    // Pick Question Type based on mix
+    const types = ['words_to_num', 'num_to_words', 'prev_next', 'sequence', 'round_tens'];
+    const type = types[Math.floor(Math.random() * types.length)];
+    
+    const num = Math.floor(Math.random() * 899) + 101; // Range 101-999
+
+    if (type === 'num_to_words') {
+      const correctWords = numberToWords(num);
+      currentQuestion = {
+        type: 'word_builder',
+        title: 'כתבו את המספר במילים:',
+        text: num,
+        answer: correctWords
+      };
+    } 
+    else if (type === 'words_to_num') {
+      const wordsText = numberToWords(num);
+      currentQuestion = {
+        type: 'numpad',
+        title: 'איזה מספר זה במילים?',
+        text: wordsText,
+        answer: num.toString()
+      };
+    }
+    else if (type === 'prev_next') {
+      const isPrev = Math.random() > 0.5;
+      const targetNum = isPrev ? num - 1 : num + 1;
+      currentQuestion = {
+        type: 'numpad',
+        title: isPrev ? `מה המספר הקודם למספר:` : `מה המספר העוקב (הבא) למספר:`,
+        text: num,
+        answer: targetNum.toString()
+      };
+    }
+    else if (type === 'round_tens') {
+      const lower = Math.floor(num / 10) * 10;
+      const upper = lower + 10;
+      currentQuestion = {
+        type: 'choice',
+        title: 'בין אילו עשרות שלמות נמצא המספר?',
+        text: num,
+        options: [
+          `${lower} ל- ${upper}`,
+          `${lower - 10} ל- ${lower}`,
+          `${upper} ל- ${upper + 10}`
+        ],
+        answer: `${lower} ל- ${upper}`
+      };
+    }
+    else if (type === 'sequence') {
+      const step = [1, 10, 100][Math.floor(Math.random() * 3)];
+      const seq = [num, num + step, num + step * 2];
+      const ans = num + step * 3;
+      currentQuestion = {
+        type: 'numpad',
+        title: `מה המספר הבא בסדרה? (קפיצות של ${step})`,
+        text: `${seq.join(', ')}, ___`,
+        answer: ans.toString()
+      };
+    }
+
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    document.getElementById('q-title').innerText = currentQuestion.title;
+    document.getElementById('q-text').innerText = currentQuestion.text;
+
+    const area = document.getElementById('controls-area');
+    const submitBtn = document.getElementById('submit-btn');
+    area.innerHTML = "";
+
+    if (currentQuestion.type === 'word_builder') {
+      submitBtn.style.display = "block";
+      
+      const display = document.createElement('div');
+      display.className = 'answer-display';
+      display.id = 'word-display';
+      area.appendChild(display);
+
+      const wordsGrid = document.createElement('div');
+      wordsGrid.className = 'words-grid';
+
+      // Pool of word options
+      let pool = [
+        "מאה", "מאתיים", "שלוש מאות", "ארבע מאות", "חמש מאות", "שש מאות", "שבע מאות", "שמונה מאות", "תשע מאות",
+        "עשרים", "שלושים", "ארבעים", "חמישים", "שישים", "שבעים", "שמונים", "תשעים",
+        "אחת", "שתים", "שלוש", "ארבע", "חמש", "שש", "שבע", "שמונה", "תשע",
+        "ואחת", "ושתים", "ושלוש", "וארבע", "וחמש", "ושש", "ושבע", "ושמונה", "ותשע"
+      ];
+
+      // Shuffle and pick relevant ones + distractors
+      const correctParts = currentQuestion.answer.split(" ");
+      let options = Array.from(new Set([...correctParts, ...pool.sort(() => 0.5 - Math.random()).slice(0, 6)]));
+      options.sort(() => 0.5 - Math.random());
+
+      options.forEach(w => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-word';
+        btn.innerText = w;
+        btn.onclick = () => {
+          userWordInput.push(w);
+          updateWordDisplay();
+        };
+        wordsGrid.appendChild(btn);
+      });
+
+      area.appendChild(wordsGrid);
+    } 
+    else if (currentQuestion.type === 'numpad') {
+      submitBtn.style.display = "block";
+
+      const display = document.createElement('div');
+      display.className = 'answer-display';
+      display.id = 'num-display';
+      area.appendChild(display);
+
+      const numpad = document.createElement('div');
+      numpad.className = 'numpad';
+
+      for (let i = 1; i <= 9; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'btn-num';
+        btn.innerText = i;
+        btn.onclick = () => { userNumInput += i; updateNumDisplay(); };
+        numpad.appendChild(btn);
+      }
+
+      const clearBtn = document.createElement('button');
+      clearBtn.className = 'btn-action';
+      clearBtn.innerText = 'מחיקה ⌫';
+      clearBtn.onclick = () => { userNumInput = userNumInput.slice(0, -1); updateNumDisplay(); };
+      numpad.appendChild(clearBtn);
+
+      const zeroBtn = document.createElement('button');
+      zeroBtn.className = 'btn-num';
+      zeroBtn.innerText = '0';
+      zeroBtn.onclick = () => { userNumInput += '0'; updateNumDisplay(); };
+      numpad.appendChild(zeroBtn);
+
+      area.appendChild(numpad);
+    }
+    else if (currentQuestion.type === 'choice') {
+      submitBtn.style.display = "none"; // Direct click submits
+
+      const optionsGrid = document.createElement('div');
+      optionsGrid.className = 'options-grid';
+
+      let shuffled = [...currentQuestion.options].sort(() => 0.5 - Math.random());
+      shuffled.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-option';
+        btn.innerText = opt;
+        btn.onclick = () => checkChoiceAnswer(opt);
+        optionsGrid.appendChild(btn);
+      });
+
+      area.appendChild(optionsGrid);
+    }
+  }
+
+  function updateWordDisplay() {
+    const disp = document.getElementById('word-display');
+    disp.innerHTML = "";
+    userWordInput.forEach((w, index) => {
+      const chip = document.createElement('span');
+      chip.className = 'word-chip';
+      chip.innerText = w;
+      chip.onclick = () => {
+        userWordInput.splice(index, 1);
+        updateWordDisplay();
+      };
+      disp.appendChild(chip);
+    });
+  }
+
+  function updateNumDisplay() {
+    document.getElementById('num-display').innerText = userNumInput;
+  }
+
+  function checkAnswer() {
+    let userAns = "";
+    if (currentQuestion.type === 'word_builder') {
+      userAns = userWordInput.join(" ");
+    } else if (currentQuestion.type === 'numpad') {
+      userAns = userNumInput;
+    }
+    validate(userAns === currentQuestion.answer);
+  }
+
+  function checkChoiceAnswer(selected) {
+    validate(selected === currentQuestion.answer);
+  }
+
+  function validate(isCorrect) {
+    const fb = document.getElementById('feedback');
+    const fbIcon = document.getElementById('fb-icon');
+    const fbText = document.getElementById('fb-text');
+
+    fb.style.display = 'flex';
+
+    if (isCorrect) {
+      fbIcon.innerText = '🎉';
+      fbText.innerText = 'נכון מאוד! אלופה!';
+      fbText.style.color = '#27AE60';
+      currentScore += 10;
+      streak++;
+      if (streak % 5 === 0) currentLevel++;
+    } else {
+      fbIcon.innerText = '💡';
+      fbText.innerText = `לא נורא! התשובה היא: ${currentQuestion.answer}`;
+      fbText.style.color = '#E74C3C';
+      streak = 0;
+    }
+
+    document.getElementById('score').innerText = currentScore;
+    document.getElementById('level').innerText = currentLevel;
+    document.getElementById('streak').innerText = streak;
+
+    setTimeout(() => {
+      fb.style.display = 'none';
+      generateQuestion();
+    }, 2000);
+  }
+
+  // Start game
+  generateQuestion();
+</script>
+</body>
+</html>
